@@ -5,6 +5,11 @@
 # app.py should pass pylint
 # (Optional) Build a simple integration test
 
+setup:
+	# Create python virtualenv & source it
+	python3 -m venv venv
+
+
 install:
 	# This should be run from inside a virtualenv
 	pip install --upgrade pip &&\
