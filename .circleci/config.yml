@@ -127,4 +127,6 @@ workflows:
   deployment:
     jobs:
       - lintcheck
-      
+      - building-image:
+          requires:
+            - lintcheck
