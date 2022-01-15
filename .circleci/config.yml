@@ -102,7 +102,14 @@ jobs:
             kubectl get nodes
             kubectl get deployment
             kubectl get services -o wide
-          name: Test cluster        
+          name: Test cluster
+  delay:
+    executor: aws-eks/python3
+    steps:
+      - run:
+          command: |
+            sleep 540
+          name: Delay cluster deletion        
 
   cluster-deployment:
     executor: aws-eks/python3
@@ -153,11 +160,5 @@ orbs:
 workflows:
   deployment:
     jobs:
-      - lintcheck
-      - create-cluster:
-          requires:
-            - lintcheck
-      - test-cluster:
+      - aws-eks/delete-cluster:
           cluster-name: samplecluster
-          requires:
-            - create-cluster
