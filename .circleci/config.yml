@@ -21,13 +21,13 @@ jobs:
       - run:
           name: install dependencies
           command: |
-              make setup
-              . ~/.devops/bin/activate
+              python3 -m venv venv
+              . venv/bin/activate
               make install
       - run:
           name: run lint
           command: |
-              . ~/.devops/bin/activate
+              . venv/bin/activate
               make lint  
   building-image:
     machine: true
