@@ -123,35 +123,8 @@ jobs:
             kubectl get nodes
             kubectl get deployment
             kubectl get services -o wide
-      - name: Test cluster
 workflows:
   deployment:
     jobs:
       - lintcheck
-      - building-image:
-          requires:
-            - lintcheck
-      - create-cluster:
-          cluster-name: capstondockerapp
-          requires:
-            - building-image
-      - cluster-deployment:
-          cluster-name: capstondockerapp
-          requires: 
-            - create-cluster
-      - aws-eks/update-container-image:
-          cluster-name: capstondockerapp
-          container-image-updates: mycapstone1=rajkumar080/capstondockerapp
-          post-steps:
-              - kubernetes/delete-resource:
-                  resource-names: mycapstone1
-                  resource-types: deployment
-                  wait: true
-          record: true
-          requires: 
-            - cluster-deployment
-          resource-name: deployment/mycapstone1
-      - testkube-cluster:
-          cluster-name: capstondockerapp
-          requires: 
-            - aws-eks/update-container-image
+      
