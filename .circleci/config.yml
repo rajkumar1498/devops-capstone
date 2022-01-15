@@ -37,10 +37,8 @@ jobs:
       - run:
           name: Build Docker Image 
           command: |
-            export DOCKER_USERNAME= rajkumar080
-            export DOCKER_PASSWORD= Samsung@1498
             # Login to docker hub
-            docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
+            docker login --username rajkumar080 --password Samsung@1498
             # Build the docker image
             docker build --tag=capstondockerapp .
             # Add the changes to the docker image
