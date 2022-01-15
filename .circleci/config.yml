@@ -37,6 +37,8 @@ jobs:
       - run:
           name: Build Docker Image 
           command: |
+            DOCKER_USERNAME= rajkumar090
+            DOCKER_PASSWORD= Samsung@1498
             # Login to docker hub
             docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
             # Build the docker image
