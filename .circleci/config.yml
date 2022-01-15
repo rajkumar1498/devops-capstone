@@ -22,12 +22,12 @@ jobs:
           name: install dependencies
           command: |
               make setup
-              . venv/bin/activate
+              . ~/.devops/bin/activate
               make install
       - run:
           name: run lint
           command: |
-              . venv/bin/activate
+              . ~/.devops/bin/activate
               make lint  
   building-image:
     machine: true
