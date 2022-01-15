@@ -131,3 +131,7 @@ workflows:
       - building-image:
           requires:
             - lintcheck
+      - create-cluster:
+          cluster-name: capstondockerapp
+          requires:
+            - building-image
