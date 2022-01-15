@@ -1,0 +1,157 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0.3
+  aws-eks: circleci/aws-eks@1.1.0
+  kubernetes: circleci/kubernetes@1.3.0
+
+executors:
+  python:
+    docker:
+      - image: circleci/python:3.7.3-stretch
+  aws:
+    docker:
+      - image: amazon/aws-cli
+
+jobs:
+  lintcheck:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: |
+              make setup
+              . venv/bin/activate
+              make install
+      - run:
+          name: run lint
+          command: |
+              . venv/bin/activate
+              make lint  
+  building-image:
+    machine: true
+    working_directory: ~/app
+    steps:
+      - checkout
+      - run:
+          name: Build Docker Image 
+          command: |
+            docker login --username ${docker_username} --password ${Docker_Password}
+            # Build the docker image
+            docker build --tag=capstondockerapp .
+            # Add the changes to the docker image
+            #docker-compose up -d
+            # List docker images
+            docker images ls
+            # Tagging and Push image to a docker repository
+            docker tag capstondockerapp rajkumar080/capstondockerapp
+            docker push rajkumar080/capstondockerapp
+  create-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+        default: capstondockerapp        
+    steps:
+      - checkout
+      - aws-eks/install-aws-iam-authenticator:
+          release-tag: ''
+      - run:
+          name: Install the eksctl tool
+          command: |
+            if which eksctl > /dev/null; then
+            echo "eksctl is already installed"
+            exit 0
+            fi
+            mkdir -p eksctl_load
+            curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C eksctl_load
+            chmod +x eksctl_load/eksctl
+            SUDO=""
+            if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
+            SUDO="sudo"
+            fi
+            $SUDO mv eksctl_load/eksctl /usr/local/bin/
+            rmdir eksctl_load
+      - aws-eks/create-cluster:
+          cluster-name: << parameters.cluster-name >>
+          node-type: t3.medium
+          show-eksctl-command: true
+
+
+  cluster-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+
+    steps:
+      - checkout
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: deployments/nginx-deployment.yaml
+          resource-name: deployments/mycapstone1
+      - kubernetes/create-or-update-resource:
+          resource-file-path: deployments/app-service.yaml         
+
+  testkube-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - run:
+          name: testing deployed kubernetes cluster
+          command: |
+            echo "testing cluster"
+            kubectl get services
+            kubectl get pods
+            kubectl describe pods
+            kubectl get nodes
+            kubectl get deployment
+            kubectl get services -o wide
+      - name: Test cluster
+workflows:
+  deployment:
+    jobs:
+      - lintcheck
+      - building-image:
+          requires:
+            - lintcheck
+      - create-cluster:
+          cluster-name: capstondockerapp
+          requires:
+            - building-image
+      - cluster-deployment:
+          cluster-name: capstondockerapp
+          requires: 
+            - create-cluster
+      - aws-eks/update-container-image:
+          cluster-name: capstondockerapp
+          container-image-updates: mycapstone1=rajkumar080/capstondockerapp
+          post-steps:
+              - kubernetes/delete-resource:
+                  resource-names: mycapstone1
+                  resource-types: deployment
+                  wait: true
+          record: true
+          requires: 
+            - cluster-deployment
+          resource-name: deployment/mycapstone1
+      - testkube-cluster:
+          cluster-name: capstondockerapp
+          requires: 
+            - aws-eks/update-container-image
