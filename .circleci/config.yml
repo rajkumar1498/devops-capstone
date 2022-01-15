@@ -37,7 +37,8 @@ jobs:
       - run:
           name: Build Docker Image 
           command: |
-            docker login --username ${docker_username} --password ${Docker_Password}
+            # Login to docker hub
+            docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
             # Build the docker image
             docker build --tag=capstondockerapp .
             # Add the changes to the docker image
