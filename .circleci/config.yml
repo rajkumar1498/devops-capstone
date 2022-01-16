@@ -89,6 +89,26 @@ jobs:
           ssh-access: false
           ssh-public-key: ''
 
+  cluster-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: deployments/nginx-deployment.yaml
+          resource-name: deployments/capstonedevops
+      - kubernetes/create-or-update-resource:
+          resource-file-path: deployments/app-service.yaml
+  
   # Test the Cluster               
   test-cluster:
     executor: aws-eks/python3
@@ -112,26 +132,6 @@ jobs:
             kubectl get nodes
             kubectl get deployment
             kubectl get services -o wide      
-
-  cluster-deployment:
-    executor: aws-eks/python3
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
-    steps:
-      - checkout
-      - kubernetes/install
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
-      - kubernetes/create-or-update-resource:
-          get-rollout-status: true
-          resource-file-path: deployments/nginx-deployment.yaml
-          resource-name: deployments/capstonedevops
-      - kubernetes/create-or-update-resource:
-          resource-file-path: deployments/app-service.yaml
   
 workflows:
   deployment:
@@ -141,6 +141,18 @@ workflows:
           requires:
             - lintcheck
       - create-cluster:
-          cluster-name: capstondockerapp
+          cluster-name: capstone-devpos-cluster
           requires:
-            - building-image
+            - push-build-image
+      - test-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-cluster
+      - cluster-deployment:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-cluster
+      - test-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - cluster-deployment
