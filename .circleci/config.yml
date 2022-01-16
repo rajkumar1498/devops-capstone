@@ -60,7 +60,7 @@ jobs:
          - checkout
          - run: |
             docker build -t rajkumar080/my-python-app:latest .
-            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+            echo $DOCKERHUB_PASSWORD | docker login -u rajkumar090 --password Samsung@1498
             docker push rajkumar080/sample:latest
   # Creation of Cluster        
   create-cluster:
