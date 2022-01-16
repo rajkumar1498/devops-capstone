@@ -2,12 +2,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: capstonedevops
-
+  name: samplecluster
+  labels:
+    app: samplecluster
 spec:
   type: LoadBalancer
   selector:
-    app: CAPSTONE
+    app: samplecluster
   ports:
     - port: 80
       targetPort: 80

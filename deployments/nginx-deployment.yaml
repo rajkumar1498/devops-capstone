@@ -1,37 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: capstonedevops
+  name: samplecluster
   labels:
-    app: CAPSTONE
-  namespace: default
+    app: samplecluster
+  
 spec:
-  replicas: 5
+  replicas: 2
   selector:
     matchLabels:
-      app: CAPSTONE
+      app: samplecluster
   strategy:
-    type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       labels:
-        app: CAPSTONE
+        app: samplecluster
     spec:
       containers:
-        - image: rajkumar080/capstondockerapp2022
+        - image: rajkumar080/my-app:latest
           imagePullPolicy: Always
-          name: capstondockerapp2022
+          name: samplecluster
           ports:
             - containerPort: 80
-          readinessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 2
-            successThreshold: 1
-            failureThreshold: 1
-            httpGet:
-              path: /
-              port: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "500m"
