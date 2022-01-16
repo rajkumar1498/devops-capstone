@@ -61,7 +61,7 @@ jobs:
          - run: |
             docker build -t rajkumar080/my-python-app:latest .
             echo $DOCKERHUB_PASSWORD | docker login -u rajkumar080 --password Samsung@1498
-            docker push rajkumar080/sample:latest
+            docker push rajkumar080/my-python-app:latest
   # Creation of Cluster        
   create-cluster:
     executor: aws-eks/python3
