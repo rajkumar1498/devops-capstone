@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: samplecluster
+  name: capstone-devpos-cluster
   labels:
-    app: samplecluster
-  
+    app: CAPSTONE
+  namespace: default
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: samplecluster
+      app: CAPSTONE
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -18,15 +18,24 @@ spec:
   template:
     metadata:
       labels:
-        app: samplecluster
+        app: CAPSTONE
     spec:
       containers:
-        - image: rajkumar080/my-app:latest
+        - image: rajkumar080/devops-capstone-app:latest
           imagePullPolicy: Always
-          name: samplecluster
+          name: capstonedevops
           ports:
             - containerPort: 80
           resources:
             requests:
               memory: "128Mi"
               cpu: "500m"
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 1
+            httpGet:
+              path: /
+              port: 80
