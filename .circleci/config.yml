@@ -42,7 +42,7 @@ jobs:
           name: Build Docker Image 
           command: |
             # Login to docker hub
-            docker login --username rajkumar080 --password Samsung@1498
+            docker login --username $DOCKER_USER --password Samsung@1498
             # Build the docker image
             docker build --tag=capstondockerapp2022 .
             # Add the changes to the docker image
@@ -51,7 +51,7 @@ jobs:
             docker images ls
             # Tagging and Push image to a docker repository
             docker tag capstondockerapp2022 rajkumar080/capstondockerapp2022
-            docker push rajkumar080/capstondockerapp2022
+            docker push rajkumar080/capstondockerapp2022:latest
             
   create-cluster:
     executor: aws-eks/python3
@@ -136,22 +136,8 @@ jobs:
 workflows:
   deployment:
     jobs:
-      - lintcheck
-      - push-build-image:
-          requires:
-            - lintcheck
-      - create-cluster:
-          cluster-name: capstone-devpos-cluster
-          requires:
-            - push-build-image
-      - test-cluster:
-          cluster-name: capstone-devpos-cluster
-          requires:
-            - create-cluster
       - cluster-deployment:
           cluster-name: capstone-devpos-cluster
-          requires:
-            - create-cluster
       - test-cluster:
           cluster-name: capstone-devpos-cluster
           requires:

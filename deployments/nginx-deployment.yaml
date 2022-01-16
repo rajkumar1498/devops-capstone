@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: CAPSTIONE
+  name: capstonedevops
   labels:
-    app: CAPSTIONE
+    app: CAPSTONE
   namespace: default
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: CAPSTIONE
+      app: CAPSTONE
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -18,12 +18,12 @@ spec:
   template:
     metadata:
       labels:
-        app: CAPSTIONE
+        app: CAPSTONE
     spec:
       containers:
-        - image: rajkumar080/capstondockerapp
+        - image: rajkumar080/capstondockerapp2022
           imagePullPolicy: Always
-          name: CAPSTIONE
+          name: capstondockerapp2022
           ports:
             - containerPort: 80
           readinessProbe:
