@@ -12,8 +12,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksctl-devopscapstone-nodegroup-nodegroup --region us-west-2
-            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-west-2
+            aws cloudformation delete-stack --stack-name eksctl-devopscapstone-nodegroup-nodegroup --region us-east-2
+            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
 parameters:
   docker_image:
     type: string
@@ -60,7 +60,7 @@ jobs:
          - checkout
          - run: |
             docker build -t rajkumar080/my-python-app:latest .
-            echo $DOCKERHUB_PASSWORD | docker login -u rajkumar080 --password Samsung@1498
+            docker login -u rajkumar080 --password Samsung@1498
             docker push rajkumar080/my-python-app:latest
   # Creation of Cluster        
   create-cluster:
@@ -132,11 +132,11 @@ jobs:
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
-          resource-file-path: deployment/nginx-deployment.yaml
-          resource-name: deployment/samplecluster
+          resource-file-path: deployments/nginx-deployment.yaml
+          resource-name: deployments/samplecluster
           
       - kubernetes/create-or-update-resource:
-          resource-file-path: deployment/app-service.yaml
+          resource-file-path: deployments/app-service.yaml
 
   undeploy-application:
     executor: aws-eks/python3
@@ -200,22 +200,12 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - build
-      - build-and-push-image:
-          requires:
-            - build
-      - create-cluster:
-          requires:
-            - build-and-push-image
       - test-cluster:
           cluster-name: samplecluster
-          requires:
-            - create-cluster
       - create-deployment:
           cluster-name: samplecluster
           requires:
             - test-cluster
-
       - undeploy-application:
           cluster-name: samplecluster
           aws-region: $AWS_DEFAULT_REGION
