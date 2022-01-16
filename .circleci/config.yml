@@ -94,8 +94,6 @@ jobs:
           get-rollout-status: false
           resource-file-path: deployments/nginx-deployment.yaml
           resource-name: deployments/capstone-devpos-cluster
-      - kubernetes/create-or-update-resource:
-          resource-file-path: deployments/app-service.yaml
   
   # Test the Cluster               
   test-cluster:
