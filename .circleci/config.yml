@@ -167,7 +167,7 @@ jobs:
             kubectl get pods
             kubectl get nodes
             kubectl get nodegroup
-      - destroy_cluster:
+      - destroy-cluster:
           cluster-name: << parameters.cluster-name >>
           
 
