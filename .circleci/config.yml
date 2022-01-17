@@ -3,7 +3,8 @@ version: 2.1
 
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
-  kubernetes: circleci/kubernetes@0.4.0
+  kubernetes: circleci/kubernetes@0.4.0 
+  docker: circleci/docker@2.0.1
 
 commands:
   destroy-cluster:
@@ -19,7 +20,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksctl-devopscapstone-nodegroup-nodegroup --region us-east-2
+            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup --region us-east-2
             aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
 
 jobs:
@@ -44,7 +45,13 @@ jobs:
           command: |
               . ~/.capstone/bin/activate
               make lint
-              
+  build-docker-image-only:
+    executor: docker/docker
+    steps:
+    - docker/publish:
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          update-description: true
+            
   build-and-push-image:
     machine: true
     working_directory: ~/app
@@ -92,7 +99,7 @@ jobs:
             rmdir eksctl_download
       - aws-eks/create-cluster:
           cluster-name: << parameters.cluster-name >>
-          node-type: t3.medium
+          node-type: t2.medium
       - destroy-cluster:
           cluster-name: << parameters.cluster-name >>
 
@@ -195,6 +202,9 @@ workflows:
   deployment:
     jobs:
       - lintcheck
+      - build-docker-image-only:
+          requires:
+            - lintcheck
       #- build-and-push-image:
       #    requires:
       #      - lintcheck

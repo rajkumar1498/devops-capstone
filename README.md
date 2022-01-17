@@ -30,3 +30,12 @@ In this project, i have used Circle CI to implement Continuous Integration and C
 * kubectl get pods --all-namespaces
 * kubectl apply -f nginx_deployment.yml
 * kubectl get deployment
+
+# Links & Resources
+* https://circleci.com/developer/orbs/orb/circleci/kubernetes
+
+* https://circleci.com/developer/orbs/orb/circleci/aws-eks
+
+* https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+* https://andresaaap.medium.com/how-to-create-an-aws-eks-cluster-using-circleci-aws-eks-orb-d09a4012fd1d
