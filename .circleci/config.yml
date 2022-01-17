@@ -210,11 +210,9 @@ workflows:
       #    cluster-name: capstone-devpos-cluster
       #    requires:
       #      - create-deployment
-      #- undeploy-application:
-      #    cluster-name: capstone-devpos-cluster
-      #    aws-region: $AWS_DEFAULT_REGION
-      #    requires:
-      #      - create-deployment
-      #- delete-cluster:
-      #    requires:
-      #      - undeploy-application
+      - undeploy-application:
+          cluster-name: capstone-devpos-cluster
+          aws-region: $AWS_DEFAULT_REGION
+      - delete-cluster:
+          requires:
+            - undeploy-application
