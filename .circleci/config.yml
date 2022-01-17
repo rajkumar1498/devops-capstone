@@ -187,7 +187,7 @@ jobs:
             $SUDO mv eksctl_download/eksctl /usr/local/bin/
             rmdir eksctl_download
       - aws-eks/delete-cluster:
-          cluster-name: << parameters.cluster-name >>
+          cluster-name: capstone-devpos-cluster
           aws-region: $AWS_DEFAULT_REGION
           wait: true  
       
