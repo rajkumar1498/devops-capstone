@@ -218,6 +218,8 @@ workflows:
       - undeploy-application:
           cluster-name: capstone-devpos-cluster
           aws-region: $AWS_DEFAULT_REGION
+          requires:
+            - test-cluster
       #- delete-cluster:
       #    requires:
       #      - undeploy-application
