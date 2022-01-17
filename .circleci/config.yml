@@ -46,11 +46,12 @@ jobs:
               . ~/.capstone/bin/activate
               make lint
   build-docker-image-only:
-    executor: docker/docker
+    executor: docker/machine
     steps:
-    - docker/publish:
+      - checkout
+      - docker/check
+      - docker/build:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          update-description: true
             
   build-and-push-image:
     machine: true
