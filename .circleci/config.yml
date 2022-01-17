@@ -18,10 +18,10 @@ commands:
     steps:
       - run:
           name: Destroy environments
-          when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup --region us-east-2
-            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
+            aws cloudformation delete-stack-instances --stack-set-name my-awsconfig-stackset --regions '["eu-east-2"]' --no-retain-stacks
+            # aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup --region us-east-2
+            # aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
 
 jobs:
   lintcheck:
@@ -45,13 +45,6 @@ jobs:
           command: |
               . ~/.capstone/bin/activate
               make lint
-  build-docker-image-only:
-    executor: docker/machine
-    steps:
-      - checkout
-      - docker/check
-      - docker/build:
-          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
             
   build-and-push-image:
     machine: true
@@ -101,8 +94,7 @@ jobs:
       - aws-eks/create-cluster:
           cluster-name: << parameters.cluster-name >>
           node-type: t2.medium
-      - destroy-cluster:
-          cluster-name: << parameters.cluster-name >>
+      
 
   
 # Deployment of Cluster 
@@ -173,6 +165,11 @@ jobs:
           name: Check on pod status
           command: |
             kubectl get pods
+            kubectl get nodes
+            kubectl get nodegroup
+      - destroy_cluster:
+          cluster-name: << parameters.cluster-name >>
+          
 
   delete-cluster:
     executor: aws-eks/python3
@@ -203,27 +200,24 @@ workflows:
   deployment:
     jobs:
       - lintcheck
-      - build-docker-image-only:
+      - build-and-push-image:
           requires:
             - lintcheck
-      #- build-and-push-image:
-      #    requires:
-      #      - lintcheck
-      #- create-cluster:
-      #    cluster-name: capstone-devpos-cluster
-      #    requires:
-      #     - build-and-push-image
-      # create-deployment:
-      #   cluster-name: capstone-devpos-cluster
-      #    requires:
-      #      - create-cluster
-      #- test-cluster:
-      #    cluster-name: capstone-devpos-cluster
-      #    requires:
-      #      - create-deployment
+      - create-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - build-and-push-image
+      - create-deployment:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-cluster
+      - test-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-deployment
       - undeploy-application:
           cluster-name: capstone-devpos-cluster
           aws-region: $AWS_DEFAULT_REGION
-      - delete-cluster:
-          requires:
-            - undeploy-application
+      #- delete-cluster:
+      #    requires:
+      #      - undeploy-application
