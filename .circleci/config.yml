@@ -62,7 +62,7 @@ jobs:
           docker-image-name: rajkumar080/devops-capstone-app:latest
           target-file: "Dockerfile"
       - run:
-          name: Push Docker Image 
+          name: Push Docker Image to docker hub
           command: |
             # Build the docker image and tagging it
             # docker build -t rajkumar080/devops-capstone-app:latest .
