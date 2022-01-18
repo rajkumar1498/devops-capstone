@@ -5,6 +5,7 @@ orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.4.0 
   docker: circleci/docker@2.0.1
+  snyk: snyk/snyk@1.1.2
 
 commands:
   destroy-cluster:
@@ -19,8 +20,8 @@ commands:
       - run:
           name: Destroy environments
           command: |
-             aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup-ng --region us-east-2
-             aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
+            #aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup-ng --region us-east-2
+            aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
 
 jobs:
   lintcheck:
@@ -50,11 +51,21 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
+      - setup_remote_docker
       - run:
-          name: Build Docker Image 
+          name: Build Docker image
           command: |
             # Build the docker image and tagging it
             docker build -t rajkumar080/devops-capstone-app:latest .
+      - snyk/scan:
+          token-variable: SNYK_TOKEN
+          docker-image-name: rajkumar080/devops-capstone-app:latest
+          target-file: "Dockerfile"
+      - run:
+          name: Push Docker Image 
+          command: |
+            # Build the docker image and tagging it
+            # docker build -t rajkumar080/devops-capstone-app:latest .
             # List docker images
             docker images ls
             # Login to docker hub
@@ -167,36 +178,28 @@ jobs:
             kubectl get nodes
       - destroy-cluster:
           cluster-name: << parameters.cluster-name >>
-          
-
-  delete-cluster:
-    executor: aws-eks/python3
-    steps:
-      - run:
-          name: Install the eksctl tool
-          command: |
-            if which eksctl > /dev/null; then
-              echo "eksctl is already installed"
-              exit 0
-            fi
-            mkdir -p eksctl_download
-            curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
-              | tar xz -C eksctl_download
-            chmod +x eksctl_download/eksctl
-            SUDO=""
-            if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
-              SUDO="sudo"
-            fi
-            $SUDO mv eksctl_download/eksctl /usr/local/bin/
-            rmdir eksctl_download
-      - aws-eks/delete-cluster:
-          cluster-name: capstone-devpos-cluster
-          aws-region: $AWS_DEFAULT_REGION
-          wait: true  
-      
+    
 workflows:
   deployment:
     jobs:
+      - lintcheck
+      - build-and-push-image:
+          requires:
+            - lintcheck
+      - create-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - build-and-push-image
+      - create-deployment:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-cluster
+      - test-cluster:
+          cluster-name: capstone-devpos-cluster
+          requires:
+            - create-deployment
       - undeploy-application:
           cluster-name: capstone-devpos-cluster
           aws-region: $AWS_DEFAULT_REGION
+          requires:
+            - test-cluster
