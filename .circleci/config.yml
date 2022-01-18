@@ -47,6 +47,8 @@ jobs:
               make lint
             
   build-and-push-image:
+    environment:
+      SNYK_TOKEN: 12345678
     machine: true
     working_directory: ~/app
     steps:
