@@ -19,9 +19,8 @@ commands:
       - run:
           name: Destroy environments
           command: |
-            aws cloudformation delete-stack-instances --stack-set-name my-awsconfig-stackset --regions '["us-east-2"]' --no-retain-stacks
-            # aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup --region us-east-2
-            # aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
+             aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-nodegroup-ng --region us-east-2
+             aws cloudformation delete-stack --stack-name eksctl-<< parameters.cluster-name >>-cluster --region us-east-2
 
 jobs:
   lintcheck:
